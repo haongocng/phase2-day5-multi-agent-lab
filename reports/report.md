@@ -268,6 +268,20 @@ Task 4 tập trung vào việc giám sát hoạt động của đồ thị thôn
 
 ---
 
+## 🔍 Telemetry Step-by-Step Trace (Chi tiết từng bước)
+
+Dưới đây là bảng so sánh trace chi tiết của từng bước chạy LLM trong cả hai cấu hình Single-Agent và Multi-Agent:
+
+| Agent / Step | Prompt Sử Dụng | Output (Trích Đoạn) | Token In | Token Out | Latency (s) | Cost (USD) |
+|---|---|---|---:|---:|---:|---|
+| **Baseline** (Single-Agent) | *System:* "You are an expert research assistant. Your task is to analyze the user's query, perform research (ba..." <br>*User:* "Research GraphRAG state-of-the-art and summarize in 300 words..." | GraphRAG (Graph Retrieval-Augmented Generation) is a state-of-the-art evolution of traditional RAG that integrates knowl... | 42 | 321 | 7.04s | $0.000199 |
+| **Researcher** (Multi-Agent) | *System:* "You are a professional researcher. Your task is to analyze the provided search results and synthesiz..." <br>*User:* "Query: Research GraphRAG state-of-the-art and summarize in 300 words  Search Results: [1] Title: Mic..." | Based on the provided search results, the state-of-the-art in GraphRAG centers on leveraging graph structures to overcom... | 581 | 301 | 4.18s | $0.000268 |
+| **Analyst** (Multi-Agent) | *System:* "You are an expert tech analyst. Your task is to analyze the provided research notes. Identify the ke..." <br>*User:* "Query: Research GraphRAG state-of-the-art and summarize in 300 words  Research Notes: Based on the p..." | ## Analytical Notes on GraphRAG State-of-the-Art  ### Key Claims Identified 1. **GraphRAG overcomes vector-RAG limitatio... | 373 | 354 | 5.80s | $0.000268 |
+| **Writer** (Multi-Agent) | *System:* "You are a professional technical writer. Synthesize a comprehensive final report. Audience: technica..." <br>*User:* "Query: Research GraphRAG state-of-the-art and summarize in 300 words  Research Notes: Based on the p..." | # GraphRAG State-of-the-Art: Final Report  ## Introduction  GraphRAG represents a significant evolution in Retrieval-Aug... | 796 | 709 | 8.39s | $0.000545 |
+| **Critic** (Multi-Agent) | *System:* "You are a strict editorial critic and fact-checker. Your job is to verify the accuracy and citation ..." <br>*User:* "Original Final Answer: # GraphRAG State-of-the-Art: Final Report  ## Introduction  GraphRAG represen..." | # GraphRAG State-of-the-Art: Final Report  ## Introduction  GraphRAG represents a significant evolution in Retrieval-Aug... | 1344 | 725 | 6.44s | $0.000637 |
+
+*(Lưu ý: Số lượng Token được ước lượng dựa trên số lượng từ tiếng Anh với hệ số nhân 1.3 do KIRA API không đếm trực tiếp token. Chi phí ước lượng dựa trên đơn giá: $0.15/1M Input tokens, $0.60/1M Output tokens)*
+
 ## 🧐 Phân tích kết quả đo lường
 
 ### 1. Đánh giá về Chất lượng (Quality vs Citations)
