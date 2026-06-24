@@ -73,5 +73,11 @@ Benchmark tối thiểu:
 
 Mỗi nhóm trả lời 2 câu:
 
-1. Case nào nên dùng multi-agent? Vì sao?
-2. Case nào không nên dùng multi-agent? Vì sao?
+1. **Case nào nên dùng multi-agent? Vì sao?**
+   - **Các tác vụ nghiên cứu / giải quyết vấn đề phức tạp, đòi hỏi nhiều bước xử lý (Multi-hop Reasoning & Search)**: Ví dụ như viết báo cáo phân tích thị trường, nghiên cứu y khoa, hoặc tổng hợp tài liệu từ nhiều nguồn không đồng nhất.
+   - **Lý do**: Cần sự phân vai rõ ràng (decoupling). Việc tách nhỏ tác vụ giúp mỗi Agent tập trung tối đa vào vai trò của mình (Researcher chuyên thu thập dữ liệu thô, Analyst chuyên phản biện, Writer chuyên hành văn, Critic chuyên fact-check), giúp nâng cao chất lượng từng phần, tránh hiện tượng quá tải context trong một prompt và tối ưu hóa khả năng phản biện chéo để triệt tiêu ảo giác (hallucination).
+
+2. **Case nào không nên dùng multi-agent? Vì sao?**
+   - **Các tác vụ đơn giản, có tính chất thời gian thực (Real-time / Low-latency requirements)**: Ví dụ như chatbot hỗ trợ khách hàng trả lời nhanh các câu hỏi thường gặp (FAQ), trích xuất thông tin đơn giản từ một đoạn văn ngắn, hoặc dịch thuật trực tiếp.
+   - **Lý do**: Hệ thống Multi-Agent có độ trễ (latency) rất cao do phải gọi nhiều cuộc gọi LLM nối tiếp nhau và thực hiện nhiều tác vụ phụ trợ (như tìm kiếm, đọc file). Chi phí token (Cost) cũng tăng lên gấp nhiều lần. Sử dụng Multi-Agent trong các tình huống này là quá phức tạp và lãng phí tài nguyên (over-engineering).
+

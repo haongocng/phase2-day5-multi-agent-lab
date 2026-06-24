@@ -96,5 +96,76 @@ def multi_agent(
     console.print(result.model_dump_json(indent=2))
 
 
+@app.command()
+def benchmark(
+    query: Annotated[str, typer.Option("--query", "-q", help="Research query")],
+) -> None:
+    """Run benchmark comparing baseline vs multi-agent."""
+    import os
+    import time
+    from multi_agent_research_lab.evaluation.benchmark import run_benchmark
+    from multi_agent_research_lab.evaluation.report import render_markdown_report
+    from multi_agent_research_lab.services.llm_client import LLMClient
+    from multi_agent_research_lab.core.schemas import AgentName, AgentResult
+
+    _init()
+    console.print("[bold blue]Starting Benchmark...[/bold blue]")
+
+    # 1. Định nghĩa runner cho baseline
+    def baseline_runner(q: str) -> ResearchState:
+        request = ResearchQuery(query=q)
+        state = ResearchState(request=request)
+        llm_client = LLMClient()
+        system_prompt = (
+            "You are an expert research assistant. "
+            "Your task is to analyze the user's query, perform research (based on your internal knowledge), "
+            "and draft a comprehensive summary."
+        )
+        start_time = time.time()
+        response = llm_client.complete(system_prompt=system_prompt, user_prompt=q)
+        latency = time.time() - start_time
+        state.final_answer = response.content
+        state.agent_results.append(
+            AgentResult(
+                agent=AgentName.WRITER,
+                content=response.content,
+                metadata={
+                    "latency_seconds": latency,
+                    "input_tokens": response.input_tokens,
+                    "output_tokens": response.output_tokens,
+                    "cost_usd": response.cost_usd,
+                }
+            )
+        )
+        return state
+
+    # 2. Định nghĩa runner cho multi-agent
+    def multi_agent_runner(q: str) -> ResearchState:
+        state = ResearchState(request=ResearchQuery(query=q))
+        workflow = MultiAgentWorkflow()
+        return workflow.run(state)
+
+    # 3. Chạy benchmark
+    console.print("Running baseline (single-agent) runner...")
+    state_base, metrics_base = run_benchmark("Baseline (Single-Agent)", query, baseline_runner)
+
+    console.print("Running multi-agent (LangGraph) runner...")
+    state_multi, metrics_multi = run_benchmark("Multi-Agent (LangGraph)", query, multi_agent_runner)
+
+    # 4. Tạo báo cáo
+    metrics_list = [metrics_base, metrics_multi]
+    report_md = render_markdown_report(metrics_list)
+
+    # Ghi báo cáo vào reports/benchmark_report.md
+    os.makedirs("reports", exist_ok=True)
+    report_path = "reports/benchmark_report.md"
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(report_md)
+
+    console.print(f"[bold green]Benchmark completed successfully![/bold green]")
+    console.print(f"Report saved to [bold cyan]{report_path}[/bold cyan]")
+    console.print(Panel.fit(report_md, title="Benchmark Report Summary"))
+
+
 if __name__ == "__main__":
     app()

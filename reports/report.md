@@ -204,7 +204,7 @@ Toàn bộ các Agent đều thực thi thành công:
 ## 🧐 Phân tích kết quả hoạt động
 
 ### 1. Kiến trúc đồ thị linh hoạt & Phân tách rõ ràng (Decoupling)
-*   **Ưu điểm**: Việc sử dụng LangGraph giúp phân tách hoàn toàn phần **orchestration** (nằm ở [workflow.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/graph/workflow.py)) và **agent logic** (nằm trong các file tương ứng trong `agents/`). 
+*   **Ưu điểm**: Việc sử dụng LangGraph giúp phân tách hoàn toàn phần **orchestration** (nằm ở [workflow.py] và **agent logic** (nằm trong các file tương ứng trong `agents/`). 
 *   Nếu sau này chúng ta muốn thêm một node mới (ví dụ: `TranslatorAgent` hoặc `FormatAgent`), chúng ta chỉ cần khai báo node đó trong graph và bổ sung 1 dòng định tuyến tương ứng trong Supervisor mà không phải thay đổi bất kỳ dòng code nào của các Agent cũ.
 
 ### 2. Sự an toàn nhờ Guardrails của Supervisor
@@ -212,3 +212,77 @@ Toàn bộ các Agent đều thực thi thành công:
 
 ### 3. Đánh giá luồng dữ liệu (State Handoff)
 *   Do chúng ta cập nhật trực tiếp trên đối tượng `ResearchState` và trả về toàn bộ đối tượng này ở cuối mỗi node, LangGraph thực hiện ghi đè một cách an toàn mà không làm mất lịch sử các list như `agent_results` hay `route_history`. Việc handoff dữ liệu diễn ra mượt mà và toàn vẹn thông tin.
+
+---
+
+# Báo cáo kết quả hoàn thành Task 4: Giám sát, Đánh giá và Hoàn thành Tài liệu báo cáo (Milestone 4)
+
+## 📌 Tổng quan về Task 4
+Task 4 tập trung vào việc giám sát hoạt động của đồ thị thông qua LangSmith, tự động hóa đo lường các chỉ số hiệu năng định lượng của hệ thống (Benchmark), hoàn thành tài liệu thiết kế và xuất ra báo cáo nộp bài hoàn chỉnh.
+
+---
+
+## 🎯 Nhiệm vụ cần làm
+1. **Tích hợp Tracing**: Triển khai kết nối SDK `langsmith` trong [tracing.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/observability/tracing.py) để tự động hóa gửi vết thực thi lên dashboard LangSmith.
+2. **Triển khai Benchmark tự động**:
+    *   Lập trình [benchmark.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/evaluation/benchmark.py) để đo lường các metrics: Latency, Cost (tự đếm token thô do KIRA API trả về 0), Quality Score (sử dụng LLM-as-a-judge đánh giá chéo theo thang 10 điểm) và Citation count.
+    *   Cập nhật [report.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/evaluation/report.py) tự động phân tích so sánh chi tiết Baseline vs Multi-Agent.
+    *   Tích hợp lệnh CLI `typer benchmark` trong [cli.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/cli.py).
+3. **Tài liệu nộp bài**:
+    *   Điền đầy đủ thông tin thiết kế vào [design_template.md](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/docs/design_template.md).
+    *   Trả lời Exit ticket trong [lab_guide.md](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/docs/lab_guide.md).
+
+---
+
+## 🛠️ Công cụ & Thư viện đã sử dụng
+*   **LangSmith SDK (`langsmith>=0.1`)**: Gửi telemetry và debug log của đồ thị lên LangSmith cloud.
+*   **LLM-as-a-judge (model `kira-mini-1.0`)**: Được sử dụng để chấm điểm tự động chất lượng văn bản trả về.
+*   **Regex (`re`)**: Dùng để lọc điểm số từ LLM và đếm số lượng trích dẫn nguồn dạng `[x]`.
+
+---
+
+## 📝 Các bước đã thực hiện
+
+1.  **Tích hợp LangSmith**:
+    *   Cấu hình `os.environ` các biến LangSmith trong `_init()` của `cli.py` để LangGraph tự động kết nối telemetry.
+    *   Bổ sung code khởi tạo `Client` và gửi span run thủ công trong [tracing.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/observability/tracing.py).
+2.  **Lập trình Benchmark & Report**:
+    *   Chỉnh sửa [benchmark.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/evaluation/benchmark.py) định nghĩa hàm `evaluate_quality` và `calculate_cost` để tự động hóa đo lường.
+    *   Chỉnh sửa [report.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/evaluation/report.py) tạo cấu trúc Markdown báo cáo chuyên nghiệp.
+3.  **Bổ sung CLI benchmark**: Cập nhật [cli.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/src/multi_agent_research_lab/cli.py) đăng ký command `benchmark`.
+4.  **Tài liệu**: Điền đầy đủ dữ liệu thiết kế hệ thống và câu hỏi Exit ticket.
+5.  **Chạy kiểm thử Benchmark**: Thực thi command benchmark tự động trong `.venv`:
+    ```bash
+    PYTHONPATH=src .venv/bin/python -m multi_agent_research_lab.cli benchmark --query "Research GraphRAG state-of-the-art and summarize in 300 words"
+    ```
+6.  **Sửa Test cases**: Chỉnh sửa [test_agents_todo.py](file:///Users/haongocng/Vin/phase2-day5-multi-agent-lab/tests/test_agents_todo.py) để thay thế testcase check TODO bằng testcase kiểm tra routing của SupervisorAgent thực tế. Đảm bảo toàn bộ pytest vượt qua.
+
+---
+
+## 📊 Kết quả đo lường thực tế (Benchmark Report)
+
+| Run | Latency (s) | Cost (USD) | Quality (0-10) | Notes |
+|---|---:|---:|---:|---|
+| Baseline (Single-Agent) | 6.82 | $0.000440 | 9.5 | Citations found: 0. Success. |
+| Multi-Agent (LangGraph) | 46.48 | $0.004091 | 7.5 | Citations found: 5. Success. |
+
+---
+
+## 🧐 Phân tích kết quả đo lường
+
+### 1. Đánh giá về Chất lượng (Quality vs Citations)
+*   **Tại sao Baseline đạt điểm Quality cao hơn (9.5 so với 7.5)?**
+    *   Mô hình `kira-mini-1.0` khi chạy đơn lẻ (Baseline) tạo ra phản hồi rất trôi chảy, súc tích và có phong cách dễ đọc. Do đó, LLM Evaluator chấm điểm rất cao về cấu trúc hình thức.
+    *   Tuy nhiên, Baseline **hoàn toàn không có nguồn dẫn chứng (0 citations)**. Mọi tri thức đều là do mô hình tự nhớ từ trước, tiềm ẩn nguy cơ cao về ảo giác (hallucination).
+*   **Điểm mạnh của Multi-Agent**:
+    *   Multi-Agent thu về **5 trích dẫn thực tế** trích xuất từ Tavily search. 
+    *   Câu trả lời có độ chính xác khoa học cao, đi sâu vào cấu trúc bên trong (Community detection, Leiden) và chỉ ra các thiếu sót thực nghiệm của GraphRAG. Mặc dù cấu trúc phản biện kỹ thuật phức tạp có thể làm giảm nhẹ điểm số hình thức từ LLM Evaluator (xuống 7.5), nó lại cực kỳ đáng tin cậy cho các mục đích học thuật và phân tích.
+
+### 2. Sự đánh đổi về Latency và Cost
+*   **Latency**: Multi-Agent chậm hơn Baseline **6.8 lần** (46.48s so với 6.82s). Điều này phản ánh rõ ràng độ trễ tích lũy khi chạy qua 5 node riêng rẽ nối tiếp nhau trong LangGraph.
+*   **Cost**: Chi phí của Multi-Agent cao hơn Baseline gần **10 lần** do tổng số token tiêu thụ cho toàn bộ quy trình lặp và ghi chú rất lớn.
+
+### 3. Kết luận cuối cùng
+*   **Single-Agent** phù hợp cho các truy vấn đơn giản, đòi hỏi phản hồi nhanh và tối ưu chi phí.
+*   **Multi-Agent** là giải pháp tối ưu cho các báo cáo phân tích kỹ thuật chuyên sâu, đòi hỏi tính minh bạch cao thông qua nguồn trích dẫn cụ thể và cần có quy trình kiểm duyệt chất lượng nghiêm ngặt.
+
